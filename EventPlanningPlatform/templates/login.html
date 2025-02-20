@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"> <!-- FontAwesome Iconları -->
+    <title>Login</title>
+</head>
+<body>
+    <div class="login-container">
+        <h2><i class="fas fa-handshake"></i> Welcome Back!</h2>
+        <form method="POST" action="{% url 'login' %}" class="login-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="username">Username</label>
+                <div class="input-icon">
+                    <i class="fas fa-user"></i> <!-- Kullanıcı ikonu -->
+                    <input type="text" id="username" name="username" placeholder="Enter your username" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-icon">
+                    <i class="fas fa-lock"></i> <!-- Şifre ikonu -->
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn"><i class="fas fa-sign-in-alt"></i> Login</button> <!-- Giriş butonuna ikonu ekliyoruz -->
+        </form>
+
+        <div class="register-link">
+            <p>Not registered yet? <a href="{% url 'register' %}">Create an account</a></p>
+        </div>
+        <div class="forgot-password">
+            <p><a href="{% url 'password_reset' %}">Forgot your password?</a></p>
+        </div>
+    </div>
+
+    <!-- Küçük yan ikonlar -->
+    <div class="side-icons">
+        <i class="fas fa-coffee"></i>
+        <i class="fas fa-heart"></i>
+        <i class="fas fa-star"></i>
+    </div>
+</body>
+
+<style>
+    /* Genel vücut ayarları */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(to right, #ff8c00, #ff007f);  /* Canlı renk geçişi */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        position: relative; /* Yan ikonları düzgün konumlandırabilmek için */
+    }
+
+    /* Giriş ekranı container */
+    .login-container {
+        background-color: #fff;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        width: 350px;
+        text-align: center;
+        animation: slideIn 1s ease-in-out; /* Giriş animasyonu */
+    }
+
+    /* Başlık */
+    h2 {
+        font-size: 32px;
+        color: #333;
+        margin-bottom: 30px;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-family: 'Pacifico', cursive;  /* Daha süslü font */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    h2 i {
+        margin-right: 10px;
+        color: #ff007f; /* İkon rengi */
+    }
+
+    /* Form grup düzeni */
+    .form-group {
+        margin-bottom: 25px;
+        text-align: left;
+    }
+
+    label {
+        font-size: 14px;
+        color: #333;
+    }
+
+    /* Input ile iconları hizalamak */
+    .input-icon {
+        position: relative;
+    }
+
+    .input-icon i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #ff007f;  /* Canlı pembe ikon rengi */
+    }
+
+    input {
+        width: 100%;
+        padding: 12px 12px 12px 40px;  /* Sol tarafa ikon için padding ekledik */
+        margin-top: 5px;
+        box-sizing: border-box;
+        border-radius: 12px;
+        border: 1px solid #ddd;
+        background-color: #fdfdfd;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+
+    input:focus {
+        outline: none;
+        border: 1px solid #ff007f;  /* Fokuslanınca pembe renk */
+        background-color: #fff;
+        box-shadow: 0 0 8px rgba(255, 0, 127, 0.5); /* Gölgeleme efekti */
+    }
+
+    /* Buton düzeni */
+    .btn {
+        width: 100%;
+        padding: 14px;
+        background-color: #ff007f;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 18px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+        background-color: #ff8c00;
+    }
+
+    /* Alt linkler */
+    .register-link, .forgot-password {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 14px;
+    }
+
+    .register-link a, .forgot-password a {
+        color: #ff007f;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .register-link a:hover, .forgot-password a:hover {
+        text-decoration: underline;
+    }
+
+    /* Hover efektleri */
+    .btn:hover {
+        transform: translateY(-2px); /* Buton hover'ı */
+    }
+
+    /* Giriş animasyonu */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Küçük yan ikonlar */
+    .side-icons {
+        position: absolute;
+        top: 10%;
+        right: 5%; /* Sağdan 5% mesafe verildi */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 10; /* İkonların görünür olması için z-index ayarı */
+    }
+
+    .side-icons i {
+        font-size: 30px;
+        margin: 10px;
+        color: #ff007f;
+        transition: transform 0.3s ease;
+    }
+
+    .side-icons i:hover {
+        transform: scale(1.2);  /* İkon hover büyütme efekti */
+    }
+</style>
+
+</html>

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    <title>Etkinlikler</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #FFB6C1, #A9C9FF); /* Renk geçişi */
+            padding: 20px;
+        }
+        .event-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .event-item {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .btn-custom {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="event-container">
+        <h1 class="text-center">Etkinlikler</h1>
+
+           <!-- Mesajları küçük uyarı şeklinde göster -->
+           {% if messages %}
+           <div id="alert-container">
+               {% for message in messages %}
+                   <div class="alert alert-info alert-dismissible fade show" role="alert">
+                       {{ message }}
+                       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                   </div>
+               {% endfor %}
+           </div>
+       {% endif %}
+
+        <!-- Yeni Etkinlik Oluşturma Formu -->
+        <button class="btn btn-success btn-custom" onclick="toggleCreateEventForm()">Yeni Etkinlik Oluştur</button>
+        <div id="create-event-form" style="display: none; margin-top: 20px;">
+            <form method="POST" action="{% url 'create_event' %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="name" class="form-label">Etkinlik Adı</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Açıklama</label>
+                    <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="date" class="form-label">Tarih</label>
+                    <input type="datetime-local" class="form-control" id="date" name="date" required>
+                </div>
+                <div class="mb-3">
+                    <label for="duration" class="form-label">Süre</label>
+                    <input type="text" class="form-control" id="duration" name="duration" required>
+                </div>
+                <div class="mb-3">
+                    <label for="location" class="form-label">Konum</label>
+                    <input type="text" class="form-control" id="location" name="location" required>
+                </div>
+                <div class="mb-3">
+                    <label for="category" class="form-label">Kategori</label>
+                    <input type="text" class="form-control" id="category" name="category" required>
+                </div>
+                 <!-- Latitude ve Longitude -->
+        <div class="mb-3">
+            <label for="latitude" class="form-label">Enlem</label>
+            <input type="text" class="form-control" id="latitude" name="latitude" required>
+        </div>
+        <div class="mb-3">
+            <label for="longitude" class="form-label">Boylam</label>
+            <input type="text" class="form-control" id="longitude" name="longitude" required>
+        </div>
+        
+                <div class="mb-3">
+                    <label class="form-label">Katılımcılar</label>
+                    <div class="participants-checkboxes">
+                        {% for user in users %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="participant-{{ event.id }}-{{ user.id }}" name="participants" value="{{ user.id }}" {% if user in event.participants.all %}checked{% endif %}>
+                            <label class="form-check-label" for="participant-{{ event.id }}-{{ user.id }}">{{ user.username }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                
+                
+                
+                <button type="submit" class="btn btn-primary">Oluştur</button>
+                <button type="button" class="btn btn-secondary" onclick="toggleCreateEventForm()">İptal</button>
+            </form>
+        </div>
+
+        <!-- Etkinlik Listesi -->
+        <div id="event-list" style="margin-top: 20px;">
+            {% for event in events %}
+            <div class="event-item">
+                <h3>{{ event.name }}</h3>
+                <p><strong>Tarih:</strong> {{ event.date }}</p>
+                <p><strong>Açıklama:</strong> {{ event.description }}</p>
+                <p><strong>Konum:</strong> {{ event.location }}</p>
+                <p><strong>Kategori:</strong> {{ event.category }}</p>
+
+    
+               
+
+                
+
+                <form method="POST" action="{% url 'join_event' event.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success">Katıl</button>
+                </form>
+
+                <button class="btn btn-warning" onclick="toggleUpdateEventForm('{{ event.id }}')">Güncelle</button>
+                <form action="{% url 'delete_event' event.id %}" method="POST" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Sil</button>
+                </form>
+                <div id="update-event-form-{{ event.id }}" style="display: none; margin-top: 20px;">
+                    <form method="POST" action="{% url 'update_event' event.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="name-{{ event.id }}" class="form-label">Etkinlik Adı</label>
+                            <input type="text" class="form-control" id="name-{{ event.id }}" name="name" value="{{ event.name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description-{{ event.id }}" class="form-label">Açıklama</label>
+                            <textarea class="form-control" id="description-{{ event.id }}" name="description" rows="3" required>{{ event.description }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="date-{{ event.id }}" class="form-label">Tarih</label>
+                            <input type="datetime-local" class="form-control" id="date-{{ event.id }}" name="date" value="{{ event.date|date:'Y-m-d\TH:i' }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="duration-{{ event.id }}" class="form-label">Süre</label>
+                            <input type="text" class="form-control" id="duration-{{ event.id }}" name="duration" value="{{ event.duration }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="location-{{ event.id }}" class="form-label">Konum</label>
+                            <input type="text" class="form-control" id="location-{{ event.id }}" name="location" value="{{ event.location }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="category-{{ event.id }}" class="form-label">Kategori</label>
+                            <input type="text" class="form-control" id="category-{{ event.id }}" name="category" value="{{ event.category }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Katılımcılar</label>
+                            <div class="participants-checkboxes">
+                                {% for user in users %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="participant-{{ user.id }}" name="participants" value="{{ user.id }}">
+                                    <label class="form-check-label" for="participant-{{ user.id }}">{{ user.username }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        
+                        <button type="submit" class="btn btn-primary">Güncelle</button>
+                        <button type="button" class="btn btn-secondary" onclick="toggleUpdateEventForm('{{ event.id }}')">İptal</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <a href="{% url 'home' %}" class="btn btn-secondary btn-custom">Ana Sayfa</a>
+    </div>
+
+    <div id="map" style="height: 400px; width: 100%;"></div>
+
+
+    <h2 class="mt-5">Katıldığınız Etkinlikler</h2>
+    <div id="joined-events">
+        {% for event in user_events %}
+        <div class="event-item">
+            <h3>{{ event.name }}</h3>
+            <p><strong>Tarih:</strong> {{ event.date }}</p>
+            <p><strong>Açıklama:</strong> {{ event.description }}</p>
+            <p><strong>Konum:</strong> {{ event.location }}</p>
+            <p><strong>Kategori:</strong> {{ event.category }}</p>
+            
+            <h4>Katılımcılar:</h4>
+            <ul>
+                {% for participant in event.participants.all %}
+                <li>
+                    <strong>{{ participant.username }}</strong>
+                    {% if participant.profile_picture %}
+                        <img src="{{ participant.profile_picture.url }}" alt="{{ participant.username }}'s Profile Picture" width="30" height="30">
+                    {% else %}
+                        <span>No Profile Picture</span>
+                    {% endif %}
+                </li>
+                {% empty %}
+                <li>No participants yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% empty %}
+        <p>Henüz katıldığınız etkinlik bulunmamaktadır.</p>
+        {% endfor %}
+    </div>
+    
+
+    <a href="{% url 'home' %}" class="btn btn-secondary btn-custom">Ana Sayfa</a>
+</div>
+
+<h2>Önerilen Etkinlikler</h2>
+<div class="recommended-events">
+    {% for event in recommended_events %}
+        <div class="event-item">
+            <h3>{{ event.name }}</h3>
+            <p><strong>Tarih:</strong> {{ event.date }}</p>
+            <p><strong>Açıklama:</strong> {{ event.description }}</p>
+            <p><strong>Konum:</strong> {{ event.location }}</p>
+            <p><strong>Kategori:</strong> {{ event.category }}</p>
+            <form method="POST" action="{% url 'join_event' event.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">Katıl</button>
+            </form>
+        </div>
+    {% empty %}
+        <p>Önerilen etkinlik bulunmamaktadır.</p>
+    {% endfor %}
+</div>
+
+
+<h2>Etkinliğe Rota Planla</h2>
+
+<form id="routeForm">
+    {% csrf_token %}
+    <label for="start_lat">Başlangıç Yeri (Enlem):</label>
+    <input type="text" id="start_lat" name="start_lat" required><br>
+
+    <label for="start_lon">Başlangıç Yeri (Boylam):</label>
+    <input type="text" id="start_lon" name="start_lon" required><br>
+
+    <label for="event_id">Etkinlik Seç:</label>
+    <select name="event_id" id="event_id">
+        {% for event in events %}
+        <option value="{{ event.id }}">{{ event.name }} - {{ event.location }}</option>
+        {% endfor %}
+    </select><br>
+
+    <button type="submit" class="btn btn-primary">Rota Göster</button>
+</form>
+
+<!-- Yol tarifi sonucu -->
+<div id="routeResult" class="mt-4"></div>
+</div>
+
+<script>
+// Kullanıcı rota formunu gönderdiğinde
+document.getElementById("routeForm").addEventListener("submit", function(event) {
+event.preventDefault();
+
+const start_lat = document.getElementById("start_lat").value;
+const start_lon = document.getElementById("start_lon").value;
+const event_id = document.getElementById("event_id").value;
+
+// Rota verilerini backend'e gönder
+fetch('/event_route/', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+    },
+    body: JSON.stringify({
+        'start_lat': start_lat,
+        'start_lon': start_lon,
+        'event_id': event_id
+    })
+})
+.then(response => response.json())
+.then(data => {
+    // Rota bilgisini yazılı olarak göster
+    showRouteDirections(data);
+})
+.catch(error => console.error("Veri alma hatası:", error));
+});
+
+// Yol tarifini gösterme fonksiyonu
+function showRouteDirections(data) {
+const routeResult = document.getElementById("routeResult");
+
+if (data.error) {
+    routeResult.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+} else {
+    const directions = data.route_steps.map(step => {
+        return `<p><strong>${step.distance}</strong>: ${step.instructions}</p>`;
+    }).join('');
+
+    routeResult.innerHTML = `
+        <h4>Rota Bilgisi:</h4>
+        <p><strong>Başlangıç Konumu:</strong> (${data.start_lat}, ${data.start_lon})</p>
+        <p><strong>Etkinlik Konumu:</strong> (${data.end_lat}, ${data.end_lon})</p>
+        <p><strong>Etkinlik Adı:</strong> ${data.event_name}</p>
+        <p><strong>Etkinlik Konumu:</strong> ${data.event_location}</p>
+        <h5>Yol Tarifi:</h5>
+        ${directions}
+    `;
+}
+
+function displayRoute(data) {
+    let routeDetails = `<h4>Rota Bilgisi:</h4>`;
+    routeDetails += `<p><strong>Başlangıç Konumu:</strong> ${data.start_lat}, ${data.start_lon}</p>`;
+    routeDetails += `<p><strong>Etkinlik Konumu:</strong> ${data.end_lat}, ${data.end_lon}</p>`;
+    routeDetails += `<p><strong>Etkinlik Adı:</strong> ${data.event_name}</p>`;
+    routeDetails += `<p><strong>Etkinlik Konumu:</strong> ${data.event_location}</p>`;
+    routeDetails += `<h5>Rota Adımları:</h5><ul>`;
+
+    // Her bir adımı listele
+    data.route.forEach((step, index) => {
+        routeDetails += `<li>${step.instruction}</li>`;
+    });
+
+    routeDetails += `</ul>`;
+
+    // Sonucu sayfada göster
+    document.getElementById("route-info").innerHTML = routeDetails;
+}
+
+}
+
+</script>
+    <script>
+        function toggleCreateEventForm() {
+            const form = document.getElementById('create-event-form');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function toggleUpdateEventForm(eventId) {
+            const form = document.getElementById(`update-event-form-${eventId}`);
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
+    
+    <script>
+        // Google Maps API'nin callback fonksiyonu
+        function initMap() {
+            // API'den veriyi al
+            fetch('/event_map/')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Harita başlangıç koordinatları (ilk etkinlikten alınacak)
+                    const firstEvent = data[0];
+                    const mapCenter = {
+                        lat: firstEvent.latitude,
+                        lng: firstEvent.longitude
+                    };
+
+                    // Haritayı oluştur
+                    var map = new google.maps.Map(document.getElementById('map'), {
+                        zoom: 14,
+                        center: mapCenter
+                    });
+
+                    // Etkinlikleri haritada göster
+                    data.forEach(event => {
+                        var marker = new google.maps.Marker({
+                            position: { lat: event.latitude, lng: event.longitude },
+                            map: map,
+                            title: event.name
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error('Veri alma hatası: ', error);
+                    document.getElementById('map').innerHTML = "<p>Harita verisi yüklenemedi.</p>";
+                });
+        }
+
+        // Yeni önerilen AdvancedMarkerElement kullanımı
+var marker = new google.maps.marker.AdvancedMarkerElement({
+    position: eventLocation,
+    map: map,
+    title: event.name
+});
+
+    </script>
+    
+    
+    
+    
+    
+
+<script src="https://maps.googleapis.com/maps/api/js?key=YOURAPIKEY&callback=initMap" async defer></script>
+
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

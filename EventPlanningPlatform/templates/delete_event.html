@@ -1,0 +1,12 @@
+{% extends 'events.html' %}
+{% block content %}
+<div class="container">
+    <h1>Etkinliği Sil</h1>
+    <p>Bu etkinliği silmek istediğinizden emin misiniz: "{{ event.name }}"?</p>
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Sil</button>
+        <a href="{% url 'events' %}" class="btn btn-secondary">İptal</a>
+    </form>
+</div>
+{% endblock %}

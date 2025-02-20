@@ -1,0 +1,17 @@
+body {
+    font-family: Arial, sans-serif;
+}
+#event-list {
+    margin: 20px;
+}
+.event-item {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+
+.message-notification img {
+     width: 50px;  /* GIF'in genişliğini belirleyin */
+    height: auto; /* Yükseklik otomatik olarak ayarlanır */
+    }
+    
+}
